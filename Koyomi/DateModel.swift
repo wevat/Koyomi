@@ -21,7 +21,7 @@ final class DateModel: NSObject {
     
     enum WeekType: String {
         case monday, tuesday, wednesday, thursday, friday, saturday, sunday
-
+        
         init?(_ indexPath: IndexPath) {
             let firstWeekday = Calendar.current.firstWeekday
             switch indexPath.row % 7 {
@@ -49,9 +49,15 @@ final class DateModel: NSObject {
     fileprivate var highlightedDates: [Date] = []
     fileprivate var currentDate: Date = .init()
     
+    fileprivate var calendar: Calendar
+    fileprivate var dateFormatter: DateFormatter
+    
     // MARK: - Initialization
     
     override init() {
+        dateFormatter = DateFormatter()
+        calendar = Calendar(identifier: .gregorian)
+        
         super.init()
         setup()
     }
@@ -85,9 +91,9 @@ final class DateModel: NSObject {
         if isHidden && isOtherMonth(at: indexPath) {
             return ""
         }
-        let formatter: DateFormatter = .init()
-        formatter.dateFormat = "d"
-        return formatter.string(from: currentDates[indexPath.row])
+        
+        dateFormatter.dateFormat = "d"
+        return dateFormatter.string(from: currentDates[indexPath.row])
     }
     
     func isOtherMonth(at indexPath: IndexPath) -> Bool {
@@ -105,9 +111,8 @@ final class DateModel: NSObject {
     }
     
     func dateString(in month: MonthType, withFormat format: String) -> String {
-        let formatter: DateFormatter = .init()
-        formatter.dateFormat = format
-        return formatter.string(from: date(of: month))
+        dateFormatter.dateFormat = format
+        return dateFormatter.string(from: date(of: month))
     }
     
     func date(at indexPath: IndexPath) -> Date {
@@ -165,18 +170,18 @@ final class DateModel: NSObject {
                 sequenceDates.start = selectedDate
                 selectedDates[selectedDate] = true
                 
-            // user has selected sequence date
+                // user has selected sequence date
             } else if let _ = sequenceDates.start, let _ = sequenceDates.end {
                 sequenceDates.start = selectedDate
                 sequenceDates.end   = nil
                 selectedDates.forEach { selectedDates[$0.0] = selectedDate == $0.0 ? true : false }
                 
-            // user select selected date
+                // user select selected date
             } else if let start = sequenceDates.start , sequenceDates.end == nil && start == selectedDate {
                 sequenceDates.start = nil
                 selectedDates[selectedDate] = false
                 
-            // user has selected a date
+                // user has selected a date
             } else if let start = sequenceDates.start , sequenceDates.end == nil && start != selectedDate {
                 
                 let isSelectedBeforeDay = selectedDate < start
@@ -307,22 +312,20 @@ final class DateModel: NSObject {
 // MARK: - Private Methods -
 
 private extension DateModel {
-    var calendar: Calendar { return Calendar.current }
-    
     func setup() {
         selectedDates = [:]
         
         guard let indexAtBeginning = indexAtBeginning(in: .current) else { return }
-
+        
         var components: DateComponents = .init()
         currentDates = (0..<DateModel.maxCellCount).flatMap { index in
-                components.day = index - indexAtBeginning
-                return calendar.date(byAdding: components, to: atBeginning(of: .current))
+            components.day = index - indexAtBeginning
+            return calendar.date(byAdding: components, to: atBeginning(of: .current))
             }
             .map { (date: Date) in
                 selectedDates[date] = false
                 return date
-            }
+        }
         
         let selectedDateKeys = selectedDates.keys(of: true)
         selectedDateKeys.forEach { selectedDates[$0] = true }
