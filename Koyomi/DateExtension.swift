@@ -16,17 +16,17 @@ extension Date {
         return formatter.date(from: dateString)
     }
     
-    func daysSince(_ anotherDate: Date) -> Int? {
-        if let fromDate = dateFromComponents(self), let toDate = dateFromComponents(anotherDate) {
-            let components = Calendar.current.dateComponents([.day], from: fromDate, to: toDate)
+    func daysSince(_ anotherDate: Date, usingCalendar calendar: Calendar) -> Int? {
+        if let fromDate = dateFromComponents(self, calendar), let toDate = dateFromComponents(anotherDate, calendar) {
+            let components = calendar.dateComponents([.day], from: fromDate, to: toDate)
             return components.day
         }
         return nil
     }
     
-    private func dateFromComponents(_ date: Date) -> Date? {
-        let calender   = Calendar.current
-        let components = calender.dateComponents([.year, .month, .day], from: date)
-        return calender.date(from: components)
+    private func dateFromComponents(_ date: Date, _ calendar: Calendar) -> Date? {
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        return calendar.date(from: components)
     }
 }
+

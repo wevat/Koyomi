@@ -22,8 +22,8 @@ final class DateModel: NSObject {
     enum WeekType: String {
         case monday, tuesday, wednesday, thursday, friday, saturday, sunday
         
-        init?(_ indexPath: IndexPath) {
-            let firstWeekday = Calendar.current.firstWeekday
+        init?(_ indexPath: IndexPath, _ calendar: Calendar) {
+            let firstWeekday = calendar.firstWeekday
             switch indexPath.row % 7 {
             case (8 -  firstWeekday) % 7:  self = .sunday
             case (9 -  firstWeekday) % 7:  self = .monday
@@ -49,14 +49,14 @@ final class DateModel: NSObject {
     fileprivate var highlightedDates: [Date] = []
     fileprivate var currentDate: Date = .init()
     
-    fileprivate var calendar: Calendar
+    var calendar: Calendar
     fileprivate var dateFormatter: DateFormatter
     
     // MARK: - Initialization
     
     override init() {
         dateFormatter = DateFormatter()
-        calendar = Calendar(identifier: .gregorian)
+        calendar = Calendar.current
         
         super.init()
         setup()
@@ -148,7 +148,6 @@ final class DateModel: NSObject {
     
     func select(with indexPath: IndexPath) {
         let selectedDate = date(at: indexPath)
-        
         switch selectionMode {
         case .single:
             selectedDates.forEach { [weak self] date, isSelected in
@@ -220,7 +219,7 @@ final class DateModel: NSObject {
     func selectedPeriodLength(with indexPath: IndexPath) -> Int {
         let selectedDate = date(at: indexPath)
         
-        if let start = sequenceDates.start, let period = start.daysSince(selectedDate), sequenceDates.end == nil && start != selectedDate {
+        if let start = sequenceDates.start, let period = start.daysSince(selectedDate, usingCalendar: calendar), sequenceDates.end == nil && start != selectedDate {
             return abs(period) + 1
         } else if let start = sequenceDates.start , sequenceDates.end == nil && start == selectedDate {
             return 0
@@ -307,6 +306,11 @@ final class DateModel: NSObject {
         default: return ""
         }
     }
+    
+    func setDisplayCalendar(_ calendar: Calendar) {
+        self.calendar = calendar
+        setup()
+    }
 }
 
 // MARK: - Private Methods -
@@ -317,7 +321,7 @@ private extension DateModel {
         
         guard let indexAtBeginning = indexAtBeginning(in: .current) else { return }
         
-        var components: DateComponents = .init()
+        var components: DateComponents = .init(calendar: calendar)
         currentDates = (0..<DateModel.maxCellCount).flatMap { index in
             components.day = index - indexAtBeginning
             return calendar.date(byAdding: components, to: atBeginning(of: .current))
@@ -326,7 +330,6 @@ private extension DateModel {
                 selectedDates[date] = false
                 return date
         }
-        
         let selectedDateKeys = selectedDates.keys(of: true)
         selectedDateKeys.forEach { selectedDates[$0] = true }
     }
@@ -355,3 +358,4 @@ private extension DateModel {
         return calendar.date(byAdding: components, to: currentDate) ?? Date()
     }
 }
+

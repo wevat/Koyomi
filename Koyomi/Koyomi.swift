@@ -381,6 +381,13 @@ final public class Koyomi: UICollectionView {
         return self
     }
     
+    @discardableResult
+    public func setDisplayCalendar(_ calendar: Calendar) -> Self {
+        model.setDisplayCalendar(calendar)
+        reloadData()
+        return self
+    }
+    
     // MARK: - Override Method -
     
     override public func reloadData() {
@@ -444,9 +451,9 @@ private extension Koyomi {
                         return otherMonthColor
                     } else if let end = model.indexAtEnd(in: .current), indexPath.row > end {
                         return otherMonthColor
-                    } else if let type = DateModel.WeekType(indexPath), type == .sunday {
+                    } else if let type = DateModel.WeekType(indexPath, model.calendar), type == .sunday {
                         return holidayColor.sunday
-                    } else if let type = DateModel.WeekType(indexPath), type == .saturday {
+                    } else if let type = DateModel.WeekType(indexPath, model.calendar), type == .saturday {
                         return holidayColor.saturday
                     } else {
                         return weekdayColor
