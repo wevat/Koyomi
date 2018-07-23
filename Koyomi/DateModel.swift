@@ -111,7 +111,7 @@ final class DateModel: NSObject {
     }
     
     func dateString(in month: MonthType, withFormat format: String) -> String {
-        dateFormatter.dateFormat = format
+        dateFormatter.setLocalizedDateFormatFromTemplate(format)
         return dateFormatter.string(from: date(of: month))
     }
     
